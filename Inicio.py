@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 from streamlit_drawable_canvas import st_canvas
 
 # ============================================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN GENERAL (SIN SIDEBAR)
 # ============================================================
 st.set_page_config(
     page_title="Deducción de Sistemas // Krov Industries",
@@ -17,21 +17,25 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-if "cad_canvas_ver" not in st.session_state:
-    st.session_state.cad_canvas_ver = 0
+if "cad_version" not in st.session_state:
+    st.session_state.cad_version = 0
 
 # ============================================================
-# ESTILOS VISUALES: BLUEPRINT TÉCNICO CAD Y PANTALLA DIVIDIDA
+# ESTILOS: BLUEPRINT TÉCNICO CAD Y PANTALLA DIVIDIDA
 # ============================================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
-html, body, [data-testid="stAppViewContainer"], .stApp {
-    background-color: #030712 !important;
+html, body, [data-testid="stAppViewContainer"], .stApp, section.main, .block-container {
+    background: transparent !important;
+    background-color: transparent !important;
     color: #f1f5f9 !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    overflow-x: hidden;
+}
+
+body {
+    background-color: #020617 !important;
 }
 
 [data-testid="stHeader"] { background: transparent !important; }
@@ -126,22 +130,21 @@ div.stButton > button[kind="secondary"]:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# FONDO BLUEPRINT EN GPU
+# Fondo interactivo blueprint animado en Canvas (Cero Lag)
 components.html(
     """
     <script>
     (function() {
         const pWin = window.parent;
         const pDoc = pWin.document;
+        if (pWin.__CAD_BG_INIT__) return;
+        pWin.__CAD_BG_INIT__ = true;
 
-        if (pWin.__CAD_BG_ACTIVE__) return;
-        pWin.__CAD_BG_ACTIVE__ = true;
-
-        let canvas = pDoc.getElementById('cad-lava-canvas');
+        let canvas = pDoc.getElementById('cad-fluid-canvas');
         if (!canvas) {
             canvas = pDoc.createElement('canvas');
-            canvas.id = 'cad-lava-canvas';
-            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;background:#030712;';
+            canvas.id = 'cad-fluid-canvas';
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;background:#020617;';
             pDoc.body.prepend(canvas);
         }
 
@@ -154,35 +157,35 @@ components.html(
             h = canvas.height = pWin.innerHeight;
         });
 
-        const blobs = [
-            { x: w * 0.2, y: h * 0.3, r: 260, vx: 0.5, vy: 0.4, color: 'rgba(0, 246, 255, 0.14)' },
-            { x: w * 0.8, y: h * 0.4, r: 290, vx: -0.4, vy: 0.5, color: 'rgba(37, 99, 235, 0.12)' }
+        const orbs = [
+            { x: w * 0.2, y: h * 0.3, r: 270, vx: 0.5, vy: 0.4, color: 'rgba(0, 246, 255, 0.16)' },
+            { x: w * 0.75, y: h * 0.4, r: 290, vx: -0.4, vy: 0.5, color: 'rgba(37, 99, 235, 0.15)' },
+            { x: w * 0.5, y: h * 0.8, r: 250, vx: 0.4, vy: -0.5, color: 'rgba(255, 170, 0, 0.12)' }
         ];
 
-        function animate() {
+        function loop() {
             ctx.clearRect(0, 0, w, h);
-            ctx.fillStyle = '#030712';
+            ctx.fillStyle = '#020617';
             ctx.fillRect(0, 0, w, h);
             ctx.globalCompositeOperation = 'screen';
 
-            for (let b of blobs) {
-                b.x += b.vx; b.y += b.vy;
+            for (let b of orbs) {
+                b.x += b.vx;
+                b.y += b.vy;
                 if (b.x < -100 || b.x > w + 100) b.vx *= -1;
                 if (b.y < -100 || b.y > h + 100) b.vy *= -1;
 
-                const grad = ctx.createRadialGradient(b.x, b.y, b.r * 0.05, b.x, b.y, b.r);
-                grad.addColorStop(0, b.color);
-                grad.addColorStop(1, 'transparent');
-
+                const g = ctx.createRadialGradient(b.x, b.y, 10, b.x, b.y, b.r);
+                g.addColorStop(0, b.color);
+                g.addColorStop(1, 'transparent');
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
+                ctx.fillStyle = g;
                 ctx.fill();
             }
-            ctx.globalCompositeOperation = 'source-over';
-            requestAnimationFrame(animate);
+            requestAnimationFrame(loop);
         }
-        animate();
+        loop();
     })();
     </script>
     """,
@@ -192,75 +195,84 @@ components.html(
 
 st.markdown('<div class="brand-signature">Krov Industries · CAD & Física</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-title">Deducción de Sistemas</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-lead">Diagramación vectorial de esquemas físicos y formulación mecanicista de equilibrio</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-lead">Diagramación vectorial técnica y formulación mecanicista de equilibrio</div>', unsafe_allow_html=True)
+
+# CAMPO DE CLAVE OPENAI DIRECTO EN PANTALLA
+c_key, c_info = st.columns([1.5, 1])
+with c_key:
+    api_key_input = st.text_input(
+        "Clave de API de OpenAI:",
+        type="password",
+        value=os.environ.get("OPENAI_API_KEY", ""),
+        placeholder="sk-..."
+    )
+    if api_key_input:
+        os.environ["OPENAI_API_KEY"] = api_key_input
 
 col_cad, col_res = st.columns([1.15, 1], gap="large")
 
 with col_cad:
-    c_key, c_tool, c_col, c_fill, c_size = st.columns([1.5, 1.2, 0.8, 0.8, 0.9])
-    with c_key:
-        api_key = st.text_input("OpenAI API Key:", type="password", value=os.environ.get("OPENAI_API_KEY", ""), placeholder="sk-...")
-        if api_key:
-            os.environ["OPENAI_API_KEY"] = api_key
-    with c_tool:
-        herramienta_cad = st.selectbox("Herramienta CAD:", ["✏️ Trazo Libre", "📏 Línea Recta", "⏹️ Rectángulo", "⭕ Círculo", "🔺 Polígono"])
-    with c_col:
-        color_cad = st.color_picker("Tinta:", "#00f6ff")
-    with c_fill:
-        fill_cad = st.checkbox("Relleno", value=False)
-    with c_size:
-        grosor_cad = st.slider("Calibre:", 1, 20, 3)
+    # Controles organizados en columnas directas (sin contenedores vacíos)
+    c1, c2, c3, c4 = st.columns([1.5, 0.9, 0.8, 1.1])
+    with c1:
+        herramienta = st.selectbox("Herramienta CAD:", ["✏️ Trazo Libre", "📏 Línea Recta", "⏹️ Rectángulo", "⭕ Círculo", "🔺 Polígono"])
+    with c2:
+        color = st.color_picker("Tinta:", "#00f6ff")
+    with c3:
+        fill_on = st.checkbox("Relleno", value=False)
+    with c4:
+        grosor = st.slider("Calibre:", 1, 20, 3)
 
     mapa = {"Trazo": "freedraw", "Línea": "line", "Rectángulo": "rect", "Círculo": "circle", "Polígono": "polygon"}
-    modo_sel = next(v for k, v in mapa.items() if k in herramienta_cad)
-    color_relleno = color_cad + "44" if fill_cad else "rgba(0,0,0,0)"
+    modo_sel = next(v for k, v in mapa.items() if k in herramienta)
+    color_relleno = color + "44" if fill_on else "rgba(0,0,0,0)"
 
     canvas_res = st_canvas(
         fill_color=color_relleno,
-        stroke_width=grosor_cad,
-        stroke_color=color_cad,
+        stroke_width=grosor,
+        stroke_color=color,
         background_color="#030816",
         height=420,
         width=620,
         drawing_mode=modo_sel,
-        key=f"cad_canvas_v{st.session_state.cad_canvas_ver}",
+        key=f"cad_canvas_v{st.session_state.cad_version}",
     )
 
     st.write("")
     bc1, bc2 = st.columns([3, 1])
     with bc1:
-        process_btn = st.button("Procesar topología del sistema", type="primary", use_container_width=True)
+        btn_procesar = st.button("Procesar topología del sistema", type="primary", use_container_width=True)
     with bc2:
         btn_limpiar = st.button("Limpiar plano", type="secondary", use_container_width=True)
 
     if btn_limpiar:
-        st.session_state.cad_canvas_ver += 1
+        st.session_state.cad_version += 1
         if "resultado_cad" in st.session_state:
             del st.session_state.resultado_cad
         st.rerun()
 
-def serialize_canvas(c_data):
-    arr = np.array(c_data.astype('uint8'))
-    image = Image.fromarray(arr).convert('RGB')
+def codificar_canvas(arr_data):
+    arr = np.array(arr_data.astype('uint8'))
+    img = Image.fromarray(arr).convert('RGB')
     buf = io.BytesIO()
-    image.save(buf, format="JPEG", quality=90)
+    img.save(buf, format="JPEG", quality=90)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 with col_res:
     st.markdown("#### Formulación Teórica del Sistema")
-    if process_btn:
+    if btn_procesar:
         key_val = os.environ.get("OPENAI_API_KEY", "").strip()
         if not key_val:
-            st.warning("Introduce tu API Key para continuar.")
+            st.warning("Introduce tu clave de API de OpenAI en el campo superior para continuar.")
         elif canvas_res.image_data is None or np.std(canvas_res.image_data[:, :, :3]) < 1.0:
             st.warning("El plano CAD carece de trazos suficientes. Dibuja un diagrama antes de procesar.")
         else:
-            prog = st.progress(0, text="Iniciando parsing de vectores...")
+            prog = st.progress(0, text="Iniciando parsing estructural...")
             try:
                 from openai import OpenAI
                 client = OpenAI(api_key=key_val)
-                prog.progress(50, text="Deduciendo leyes mecánicas...")
-                b64 = serialize_canvas(canvas_res.image_data)
+                prog.progress(40, text="Deduciendo leyes de equilibrio...")
+                b64 = codificar_canvas(canvas_res.image_data)
 
                 prompt = (
                     "Actúas como investigador en física teórica y dinámica de sistemas. "
@@ -279,7 +291,7 @@ with col_res:
                 prog.progress(100, text="Deducción completada.")
                 st.session_state.resultado_cad = res.choices[0].message.content
             except Exception as e:
-                st.error(f"Fallo durante la evaluación teórica: {e}")
+                st.error(f"Error al analizar el esquema: {e}")
 
     if "resultado_cad" in st.session_state:
         st.markdown(f'<div class="blueprint-card">{st.session_state.resultado_cad}</div>', unsafe_allow_html=True)
