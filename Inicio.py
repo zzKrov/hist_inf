@@ -235,7 +235,7 @@ with col_cad:
         height=420,
         width=620,
         drawing_mode=modo_sel,
-        return_image_data=True
+        return_image_data=True,
         key=f"cad_canvas_v{st.session_state.cad_version}",
     )
 
