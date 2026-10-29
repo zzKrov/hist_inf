@@ -235,6 +235,7 @@ with col_cad:
         height=420,
         width=620,
         drawing_mode=modo_sel,
+        return_image_data=True
         key=f"cad_canvas_v{st.session_state.cad_version}",
     )
 
@@ -264,7 +265,7 @@ with col_res:
         key_val = os.environ.get("OPENAI_API_KEY", "").strip()
         if not key_val:
             st.warning("Introduce tu clave de API de OpenAI en el campo superior para continuar.")
-        elif canvas_res.image_data is None or np.std(canvas_res.image_data[:, :, :3]) < 1.0:
+        elif canvas_res is None or canvas_res.image_data is None or np.std(canvas_res.image_data[:, :, :3]) < 1.0:
             st.warning("El plano CAD carece de trazos suficientes. Dibuja un diagrama antes de procesar.")
         else:
             prog = st.progress(0, text="Iniciando parsing estructural...")
