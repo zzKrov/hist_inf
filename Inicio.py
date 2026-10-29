@@ -124,7 +124,8 @@ div.stButton > button[kind="secondary"]:hover {
     border-left: 4px solid #00f6ff;
     padding: 22px;
     border-radius: 8px;
-    line-height: 1.7;
+    line-height: 1.6;
+    font-size: 0.92rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 </style>
@@ -193,9 +194,9 @@ components.html(
     width=0
 )
 
-st.markdown('<div class="brand-signature">Krov Industries · CAD & Física</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-title">Deducción de Sistemas</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-lead">Diagramación vectorial técnica y formulación mecanicista de equilibrio</div>', unsafe_allow_html=True)
+st.markdown('<div class="brand-signature">Krov Industries · Robótica & Mecatrónica Experimental</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">Deducción de Mecanismos Robóticos</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-lead">Extrapolación mecatrónica de bocetos a arquitecturas cinemáticas no convencionales</div>', unsafe_allow_html=True)
 
 # CAMPO DE CLAVE OPENAI DIRECTO EN PANTALLA
 c_key, c_info = st.columns([1.5, 1])
@@ -212,7 +213,6 @@ with c_key:
 col_cad, col_res = st.columns([1.15, 1], gap="large")
 
 with col_cad:
-    # Controles organizados en columnas directas (sin contenedores vacíos)
     c1, c2, c3, c4 = st.columns([1.5, 0.9, 0.8, 1.1])
     with c1:
         herramienta = st.selectbox("Herramienta CAD:", ["✏️ Trazo Libre", "📏 Línea Recta", "⏹️ Rectángulo", "⭕ Círculo", "🔺 Polígono"])
@@ -242,7 +242,7 @@ with col_cad:
     st.write("")
     bc1, bc2 = st.columns([3, 1])
     with bc1:
-        btn_procesar = st.button("Procesar topología del sistema", type="primary", use_container_width=True)
+        btn_procesar = st.button("Sintetizar mecanismo robótico", type="primary", use_container_width=True)
     with bc2:
         btn_limpiar = st.button("Limpiar plano", type="secondary", use_container_width=True)
 
@@ -260,36 +260,52 @@ def codificar_canvas(arr_data):
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 with col_res:
-    st.markdown("#### Formulación Teórica del Sistema")
+    st.markdown("#### Especificación del Mecanismo")
     if btn_procesar:
         key_val = os.environ.get("OPENAI_API_KEY", "").strip()
         if not key_val:
-            st.warning("Introduce tu clave de API de OpenAI en el campo superior para continuar.")
+            st.warning("Introduce tu clave de API de OpenAI en el campo superior.")
         elif canvas_res is None or canvas_res.image_data is None or np.std(canvas_res.image_data[:, :, :3]) < 1.0:
-            st.warning("El plano CAD carece de trazos suficientes. Dibuja un diagrama antes de procesar.")
+            st.warning("El plano CAD carece de trazos suficientes. Dibuja un esquema antes de procesar.")
         else:
-            prog = st.progress(0, text="Iniciando parsing estructural...")
+            prog = st.progress(0, text="Decodificando topología cinemática...")
             try:
                 from openai import OpenAI
                 client = OpenAI(api_key=key_val)
-                prog.progress(40, text="Deduciendo leyes de equilibrio...")
+                prog.progress(40, text="Sintetizando arquitectura mecatrónica...")
                 b64 = codificar_canvas(canvas_res.image_data)
 
                 prompt = (
-                    "Actúas como investigador en física teórica y dinámica de sistemas. "
-                    "Analiza este diagrama esquemático y formula una deducción física rigurosa y directa en español "
-                    "estructurada exactamente bajo estos 3 encabezados:\n\n"
-                    "1. CONFIGURACIÓN DEL SISTEMA Y LÍMITES GEOMÉTRICOS\n"
-                    "2. MECÁNICA DE ACOPLAMIENTO Y EQUILIBRIO DE FUERZAS\n"
-                    "3. PROYECCIÓN PREDICTIVA DE COMPORTAMIENTO\n\n"
-                    "Usa un tono formal, claro y estrictamente analítico."
+                    "Actúa como Ingeniero Principal de Sistemas Mecatrónicos y Robótica Experimental (DARPA/Skunkworks). "
+                    "Interpreta la geometría, proporciones y conexiones de este boceto (sea un automóvil, humanoide, herramienta, "
+                    "cuadrúpedo, polígono o entidad abstracta) y deduce un mecanismo robótico no convencional, riguroso y plausible.\n\n"
+                    "CRITERIOS DE ESTILO:\n"
+                    "- Tono: Clínico, lacónico, hiperpreciso y objetivo. Sin introducciones, cortesías ni conclusiones genéricas.\n"
+                    "- Prohibido el lenguaje de ciencia ficción blanda, infantil o caricaturesca (sin 'rayos láser mágicos', 'hipernúcleos' o 'antimateria').\n"
+                    "- Usa ingeniería mecatrónica real y avanzada: actuadores elásticos en serie (SEA), reductores cicloidales, "
+                    "cinemática paralela/cerrada, tensegridad subactuada, aleaciones de memoria de forma (SMA), control por impedancia, "
+                    "amortiguamiento magnetorreológico, bus CAN/EtherCAT, etc.\n\n"
+                    "FORMATO EXACTO DE RESPUESTA (mantén las descripciones concisas y directas):\n\n"
+                    "**1. TAXONOMÍA CINEMÁTICA Y TOPOLOGÍA**\n"
+                    "Tipo de mecanismo (p. ej., manipulador paralelo, exoesqueleto subactuado, plataforma móvil no holonómica), "
+                    "número de grados de libertad (DoF) y distribución de pares cinemáticos deducidos de las líneas.\n\n"
+                    "**2. ACTUACIÓN, TRANSMISIÓN Y MATERIALES**\n"
+                    "Tecnología de actuadores específicos, cadena cinemática/reductores, materiales estructurales (p. ej., aleación Ti-6Al-4V, celosías de fibra de carbono) "
+                    "y estrategia de sensorización de bucle cerrado.\n\n"
+                    "**3. PROTOCOLO OPERATIVO EXPERIMENTAL**\n"
+                    "Propósito en banco de pruebas o hipótesis de validación mecatrónica extrema para este prototipo."
                 )
+
                 res = client.chat.completions.create(
                     model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}],
-                    max_tokens=650
+                    messages=[{"role": "user", "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+                    ]}],
+                    max_tokens=500,
+                    temperature=0.35
                 )
-                prog.progress(100, text="Deducción completada.")
+                prog.progress(100, text="Síntesis finalizada.")
                 st.session_state.resultado_cad = res.choices[0].message.content
             except Exception as e:
                 st.error(f"Error al analizar el esquema: {e}")
@@ -299,7 +315,7 @@ with col_res:
     else:
         st.markdown(
             '<div class="blueprint-card" style="color:#94a3b8; font-style:italic;">'
-            'Traza un esquema geométrico en el panel izquierdo y pulsa "Procesar topología" para formular las leyes mecánicas del sistema.'
+            'Traza cualquier esquema, vehículo, figura o geometría en el lienzo y haz clic en "Sintetizar mecanismo robótico" para deducir su arquitectura técnica experimental.'
             '</div>',
             unsafe_allow_html=True
         )
